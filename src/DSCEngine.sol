@@ -37,6 +37,7 @@ contract DSCEngine is ReentrancyGuard {
     ///////////////////
     mapping(address token => address priceFeed) private s_priceFeeds;
     mapping(address user => mapping(address token => uint256 amount)) private s_collateralDeposited; //Here we map the address of the user to mapping which consists of the token and the amount of that token deposited
+    mapping(address user => uint256 amountDscMinted) private s_DSCMinted;
 
     DecentralisedStableCoin private immutable i_dsc;
 
@@ -100,9 +101,51 @@ contract DSCEngine is ReentrancyGuard {
         }
     }
 
-    // /**
-    //  *
-    //  * @param amountDscToMint The amount of DSC they would like to mint
-    //  */
-    // function mintDsc(uint256 amountDscToMint) external {}
+    /**
+     *
+     * @param amountDscToMint The amount of decentralised stablecoin to mint
+     * @notice They must have more collateral value than the minimum threshold
+     */
+    function mintDsc(uint256 amountDscToMint) external moreThanZero(amountDscToMint) nonReentrant {
+        s_DSCMinted[msg.sender] += amountDscToMint; //To keep the track of all the DSC minted
+        _revertIfHealthFactorIsBroken(msg.sender);
+    }
+
+    ////////////////////////////////
+    //Private & Internal Functions//
+    ////////////////////////////////
+
+    function _getAccountInformation(address user)
+        private
+        view
+        returns (uint256 totalDscMinted, uint256 collateralValueInUSD)
+    {
+        totalDscMinted = s_DSCMinted[user];
+        collateralValueInUSD = getAccountCollateralValue(user);
+    }
+
+    /**
+     *
+     * Returns how close to liquidation a user is
+     * If a user goes below the value 1, they cant get liquidated
+     */
+    function _healthFactor(address user) private view returns (uint256) {
+        // To get the Health Factor of the particular user we need 2 main things
+        // 1. We need the DSC minted
+        // 2. We need the total Collateral VALUE
+        (uint256 totalDscMinted, uint256 collateralValueInUSD) = _getAccountInformation(user);
+    }
+
+    function _revertIfHealthFactorIsBroken(address user) internal view {
+        // 1. Check the health factor (If they have enough collateral)
+        // 2. Revert If they dont.
+    }
+
+    ////////////////////////////////
+    //Public & External Functions//
+    ////////////////////////////////
+
+    function getAccountCollateralValue(address user) public view returns (uint256) {
+        //Here we first need to loop through each collateral token, get the amount they have deposited
+    }
 }
