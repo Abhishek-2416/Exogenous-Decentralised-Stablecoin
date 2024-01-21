@@ -1,4 +1,4 @@
-# Stablecoin
+# Exogenous Decentralised Stablecoin
 The stablecoin we are reffering to will be
 
 - Relative Stability: Anchored or Pegged to the US Dollar -> $1.00
